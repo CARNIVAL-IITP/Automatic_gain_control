@@ -38,7 +38,7 @@ class AGC():
 
     def process(self, frame):
         self.frame = frame
-        self.peak()
+        self.find_peak()
         self.VAD()
         gain = self.cal_gain()
         gain = self.smoothing * gain + (1-self.smoothing) * self.prev_gain
