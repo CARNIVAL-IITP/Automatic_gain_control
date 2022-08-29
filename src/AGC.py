@@ -19,7 +19,7 @@ class AGC():
         return np.mean(dbfs)
 
     ######Temporary functions(will be deprecated after DNN VAD is implemented)#####
-    def peak(self):
+    def find_peak(self):
         self.peaks.append(np.max(np.power(self.frame, 2)))
 
     def VAD(self):
