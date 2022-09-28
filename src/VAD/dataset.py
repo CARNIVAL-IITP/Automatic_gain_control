@@ -2,6 +2,7 @@ import soundfile as sf
 import numpy as np
 import os
 import json
+import random
 import torch
 
 class VADDataset(torch.utils.data.Dataset):
@@ -105,9 +106,17 @@ class VADDataset(torch.utils.data.Dataset):
         self.frames_label += [np.zeros(1) for i in range(int(label_one - label_zero))]
 
         assert len(self.frames) == len(self.frames_label), 'Augmentation error!'
+        print('Shuffling...')
+        self.shuffle()
         print('Final frames :  {}'.format(len(self.frames)), end='\r', flush=True)
         print('\nDone!')
     
+    def shuffle(self):
+        temp = list(zip(self.frames, self.frames_label))
+        random.shuffle(temp)
+        self.frames, self.frames_label = zip(*temp)
+        self.frames, self.frames_label = list(self.frames), list(self.frames_label)
+        
     def add_silence(self):
         idx = 0
         total_silence_length = 0
