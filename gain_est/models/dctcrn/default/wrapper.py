@@ -137,60 +137,8 @@ class ModelWrapper(AudioModelWrapper):
     
     @torch.no_grad()
     def infer_epoch(self, dataloader):
-        self.eval()
-        # assume mel shape: [1, n_mel, t_mel] (batch size = 1)
-        summary = {"audios": {}, "specs": {}, "scalars": {}}
-        pesq_mean = 0
-        total_cnt = 0
-        for idx, batch in enumerate(dataloader, start=1):
-            near = batch["near"].cuda(self.rank, non_blocking=True)
-            far = batch["far"].cuda(self.rank, non_blocking=True)
-            mix = batch["mix"].cuda(self.rank, non_blocking=True)
-            b = near.size(0)
-            wav_len = near.size(-1)
-            hop_size = 256
-            discard_len = wav_len - wav_len // hop_size * hop_size
-            if discard_len > 0:
-                near = near[..., :-discard_len]
-                far = far[..., :-discard_len]
-                mix = mix[..., :-discard_len]
-            
-            
-            with torch.no_grad():
-                wav_hat = self.model(far, mix)
-
-                # SI-SNR produces scale-invariant output, which is usually too small.
-                # Therefore, we increase the power of the output
-                near_power = near.square().sum()
-                wav_hat_power = wav_hat.square().sum()
-                wav_hat *= math.sqrt(near_power / wav_hat_power)
-            
-                spec_hat = stft(wav_hat, 1024, 256, 1024)
-                mel_hat = spec_to_mel(spec_hat, 1024, 80, self.h.sampling_rate)
-
-            pesq_mean += pesq(near.squeeze().cpu().numpy(), wav_hat.squeeze().cpu().numpy(), 16000)
-            #pesq_est, pesq_mix = cal_pesq_diff(near.squeeze().cpu().numpy(), wav_hat.squeeze().cpu().numpy(), mix.squeeze().cpu().numpy())
-
-            #pesq_est, pesq_mix = cal_pesq_diff(near_ref, near_est, mix)
-            #total_pesq_est += pesq_est
-            #total_pesq_mix += pesq_mix
-            #total_pesq_diff += (pesq_est - pesq_mix)
-            print(f"\r{total_cnt} / 500  - {pesq_mean / (total_cnt + 1)}", end=" ", flush=True)
-            # Compute SI-SNRi
-
-            total_cnt += 1
-            if total_cnt == 2:
-                summary["audios"][f"gen/wav_{idx}"] = wav_hat.squeeze().cpu().numpy()
-                summary["specs"][f"gen/mel_{idx}"] = mel_hat.squeeze().cpu().numpy()
-                summary["specs"][f"gen/spec_{idx}"] = spec_hat.clamp_min(1e-5).log().squeeze().cpu().numpy()
-
-
-        print("\nAverage PESQ(Enhanced) : {0:.2f}".format(pesq_mean / (total_cnt)))
-        #print("Average PESQ(Noisy) : {0:.2f}".format(total_pesq_mix / (total_cnt)))
-        #print("Average PESQ improvement: {0:.2f}".format(total_pesq_diff / (total_cnt)))
-        summary['scalars']['pesq_diff'] = (pesq_mean / total_cnt)
-
-        return summary
+        return
+        
 
     def load(self, epoch: Optional[int] = None, path: Optional[str] = None):
         checkpoint = self.get_checkpoint(epoch, path)
