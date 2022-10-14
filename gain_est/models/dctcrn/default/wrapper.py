@@ -93,7 +93,7 @@ class ModelWrapper(AudioModelWrapper):
         self.optim.zero_grad(set_to_none=True)
 
         summary["scalars"] = {
-            "loss/si_snr": loss_sisnr_total / idx,
+            "loss": loss_total / idx,
         }
         if self.loss_aux is not None:
             summary["scalars"]["loss/aux"] = loss_aux_total / idx
@@ -102,28 +102,27 @@ class ModelWrapper(AudioModelWrapper):
     @torch.no_grad()
     def valid_epoch(self, dataloader):
         self.eval()
-        loss_sisnr_total, loss_aux_total = 0.0, 0.0
+        loss_total = 0.0
         n_items = 0
         for batch in tqdm(dataloader, desc="Valid", disable=(self.rank!=0), leave=False, dynamic_ncols=True):
-            near = batch["near"].cuda(self.rank, non_blocking=True)
-            far = batch["far"].cuda(self.rank, non_blocking=True)
-            mix = batch["mix"].cuda(self.rank, non_blocking=True)
-            batch_size = near.size(0)
+            clean = batch["clean"].cuda(self.rank, non_blocking=True)
+            noisy = batch["noisy"].cuda(self.rank, non_blocking=True)
+            batch_size = clean.size(0)
             n_items += batch_size
 
             with amp.autocast(enabled=self.fp16):
-                wav_hat, spec_hat = self.model(far, mix)
-                loss = si_snr(wav_hat, near)
-                loss_sisnr_total += loss.detach() * batch_size
+                wav_hat = self.model(noisy)
+                loss = F.mse_loss(wav_hat, clean)
+                loss_total += loss.detach() * batch_size
                 if self.loss_aux is not None:
                     spec_near = self._module.dct(near)
                     loss_aux = self.loss_aux(spec_hat, spec_near)
                     loss_aux_total += loss_aux.detach() * batch_size
-        dist.reduce(loss_sisnr_total, dst=0, op=dist.ReduceOp.SUM)
+        dist.reduce(loss_total, dst=0, op=dist.ReduceOp.SUM)
         n_items *= dist.get_world_size()
-        loss = loss_sisnr_total.item() / n_items
+        loss = loss_total.item() / n_items
         summary_scalars = {
-            "loss/si_snr": loss,
+            "loss": loss,
         }
         if self.loss_aux is not None:
             dist.reduce(loss_aux_total, dst=0, op=dist.ReduceOp.SUM)
@@ -156,26 +155,9 @@ class ModelWrapper(AudioModelWrapper):
                 far = far[..., :-discard_len]
                 mix = mix[..., :-discard_len]
             
-            if self.epoch == 1:
-                spec_near = stft(near, 1024, 256, 1024)
-                spec_far = stft(far, 1024, 256, 1024)
-                spec_mix = stft(mix, 1024, 256, 1024)
-                mel_near = spec_to_mel(spec_near, 1024, 80, self.h.sampling_rate)
-                mel_far = spec_to_mel(spec_far, 1024, 80, self.h.sampling_rate)
-                mel_mix = spec_to_mel(spec_mix, 1024, 80, self.h.sampling_rate)
-                
-                summary["audios"][f"near/wav_{idx}"] = batch["near"].squeeze().cpu().numpy()
-                summary["specs"][f"near/mel_{idx}"] = mel_near.squeeze().cpu().numpy()
-                summary["specs"][f"near/spec_{idx}"] = spec_near.clamp_min(1e-5).log().squeeze().cpu().numpy()
-                summary["audios"][f"far/wav_{idx}"] = batch["far"].squeeze().numpy()
-                summary["specs"][f"far/mel_{idx}"] = mel_far.squeeze().cpu().numpy()
-                summary["specs"][f"far/spec_{idx}"] = spec_far.clamp_min(1e-5).log().squeeze().cpu().numpy()
-                summary["audios"][f"mix/wav_{idx}"] = batch["mix"].squeeze().numpy()
-                summary["specs"][f"mix/mel_{idx}"] = mel_mix.squeeze().cpu().numpy()
-                summary["specs"][f"mix/spec_{idx}"] = spec_mix.clamp_min(1e-5).log().squeeze().cpu().numpy()
             
             with torch.no_grad():
-                wav_hat, _ = self.model(far, mix)
+                wav_hat = self.model(far, mix)
 
                 # SI-SNR produces scale-invariant output, which is usually too small.
                 # Therefore, we increase the power of the output
