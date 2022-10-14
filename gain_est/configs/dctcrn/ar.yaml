@@ -1,0 +1,53 @@
+model: "dctcrn_ar_trick_sampling"
+model_kwargs:
+    rnn_layers: 2
+    rnn_channels: 256
+    N: 512
+    hop_size: 128
+    win_size: 512
+    win_type: "hann"
+    masking_mode: "N"   # "P" (PReLU) / "S" (Sigmoid) / "T" (Tanh) / "N" (No mask)
+    kernel_size: [5, 2]
+    channels: [8, 16, 32, 64, 128, 128, 256]
+    use_mdct: False
+    norm: "batchnorm"
+    n_groups: 1
+    scheduled_sampling: "Constant"    # "Constant" / "Linear" / "Cosine"
+    p_scheduled_sampling: 1.0       # prob of selecting clean_hat. Used only with Constant.
+data:
+    near_dir: "/home/shahn/Datasets/AEC-Challenge/near"
+    far_dir: "/home/shahn/Datasets/AEC-Challenge/far"
+    mix_dir: "/home/shahn/Datasets/AEC-Challenge/mix"
+    train_idx:
+        start: 500
+        end: 9999
+    valid_idx:
+        start: 0
+        end: 499
+    infer_idx: [0, 471, 1, 2, 500, 501]     # 0은 잘되는편, 471은 안되는편
+    segment_size: 32000
+    sampling_rate: 16000
+train:
+    batch_size: 80
+    batch_size_infer: 6
+    max_epochs: 800
+    fp16: False
+    num_workers: 2
+    persistent_workers: True
+    clip_grad: null
+    seed: 1234
+    plot_param_and_grad: False
+    save_interval: 10
+    infer_interval: 10
+
+    loss_aux: "abs_mse"
+    lambda_aux: 512.0
+    power: 0.6
+
+    optimizer: "Adam"
+    optimizer_kwargs:
+        lr: 0.001
+    scheduler: "CosineAnnealingLR"
+    scheduler_kwargs:
+        T_max: 800
+        eta_min: 1.0e-7
