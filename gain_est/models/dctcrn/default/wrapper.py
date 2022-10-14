@@ -8,6 +8,7 @@ import torch
 from torch.cuda import amp
 import torch.distributed as dist
 from tqdm import tqdm
+import torch.nn.functional as F
 
 from models.modelwrapper import AudioModelWrapper
 from functional import stft, spec_to_mel
@@ -43,7 +44,7 @@ class ModelWrapper(AudioModelWrapper):
     def inference(self, wav):
         if wav.dim == 3:
             wav = wav.squeeze(1)
-        wav_hat, _ = self.model(wav)
+        wav_hat = self.model(wav)
         return wav_hat
     
     def train_epoch(self, dataloader):
@@ -53,22 +54,23 @@ class ModelWrapper(AudioModelWrapper):
         padding = int(math.log10(max_items)) + 1
         
         summary = {"scalars": {}, "hists": {}}
-        loss_sisnr_total, loss_aux_total = 0.0, 0.0
+        loss_total = 0.0
         for idx, batch in enumerate(dataloader, start=1):
             self.optim.zero_grad(set_to_none=True)
             clean = batch["clean"].cuda(self.rank, non_blocking=True)
             noisy = batch["noisy"].cuda(self.rank, non_blocking=True)
             
             with amp.autocast(enabled=self.fp16):
-                wav_hat, spec_hat = self.model(far, mix)
-                loss = si_snr(wav_hat, near)
-                loss_sisnr_total += loss.item()
+                wav_hat = self.model(noisy)
+                loss = F.mse_loss(wav_hat, clean)
+                loss_total += loss.item()
+                '''
                 if self.loss_aux is not None:
                     spec_near = self._module.dct(near)
                     loss_aux = self.loss_aux(spec_hat, spec_near)
                     loss_aux_total += loss_aux.item()
                     loss += loss_aux * self.lambda_aux
-
+                '''
             self.scaler.scale(loss).backward()
             self.scaler.unscale_(self.optim)
             if idx == len(dataloader) and self.plot_param_and_grad:
@@ -79,8 +81,7 @@ class ModelWrapper(AudioModelWrapper):
             if self.rank == 0:
                 print(
                     f"\rEpoch {self.epoch} - Train {idx:{padding}d}/{max_items} ({idx/max_items*100:>4.1f}%)"
-                    f"    si_snr: {loss_sisnr_total / idx:6.4f}"
-                    f"    aux: {loss_aux_total / idx:6.4f}"
+                    f"    loss: {loss_total / idx:6.4f}"
                     f"    scale {self.scaler.get_scale():.4f}",
                     sep=' ', end='', flush=True
                 )

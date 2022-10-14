@@ -77,7 +77,7 @@ class DCTCRN(nn.Module):
         else:
             raise NotImplementedError(f"Invalid masking_mode {masking_mode}")
 
-        channels = [2] + channels
+        channels = [1] + channels
 
         if norm.lower() == "batchnorm":
             norm_layer = lambda idx : nn.BatchNorm2d(channels[idx])
@@ -153,14 +153,13 @@ class DCTCRN(nn.Module):
                     )
                 )
 
-    def forward(self, far, mix):
+    def forward(self, noisy):
         # input: [B, Twav]
         # output wav: [B, Twav]
         # output spec: [B, N, Tspec] where Tspec * hop_size == Twav
-        far_spec = self.dct(far).unsqueeze(1)       # [B, 1, N, Tspec]
-        mix_spec = self.dct(mix).unsqueeze(1)       # [B, 1, N, Tspec]
-        x = torch.cat([far_spec, mix_spec], dim=1)  # [B, 2, N, Tspec]
-        #x = mix_spec
+
+        noisy_spec = self.dct(noisy).unsqueeze(1)
+        x = noisy_spec
         encoder_out = []
         for idx, layer in enumerate(self.encoder):
             x = layer(x)
@@ -178,9 +177,9 @@ class DCTCRN(nn.Module):
         for idx in range(len(self.decoder)):
             x = torch.cat([x, encoder_out[-1 - idx]], 1)
             x = self.decoder[idx](x)
-        x = self.mask(x, mix_spec).squeeze(1)
+        x = self.mask(x, noisy_spec).squeeze(1)
         wav = self.idct(x).squeeze(1)
-        return wav, x
+        return wav
 
 if __name__ == '__main__' :
     import numpy as np
