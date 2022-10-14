@@ -372,7 +372,10 @@ class DNSDataset(torch.utils.data.Dataset):
         self.hp = hp
         self.clean_dir = hp.clean_dir
         self.noisy_dir = hp.noisy_dir
-        self.segment_size = None if mode == "infer" else getattr(hp, "segment_size", None)
+        self.segment_size = getattr(hp, "segment_size", None)
+        self.sampling_rate = hp.sampling_rate
+        self.length_warned = False
+
         if mode == "train":
             self.files = list(range(hp.train_idx.start, hp.train_idx.end + 1))
         elif mode == "valid":
@@ -400,7 +403,7 @@ class DNSDataset(torch.utils.data.Dataset):
         assert sr == self.sampling_rate
 
         noisy, sr = librosa.core.load(
-            os.path.join(self.far_dir, f"gain_controlled_{_id}.wav"),
+            os.path.join(self.noisy_dir, f"gain_controlled_{_id}.wav"),
             sr=None
         )
         assert sr == self.sampling_rate
