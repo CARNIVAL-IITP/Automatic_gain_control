@@ -373,14 +373,16 @@ class DNSDataset(torch.utils.data.Dataset):
         self.clean_dir = hp.clean_dir
         self.noisy_dir = hp.noisy_dir
         self.segment_size = None if mode == "infer" else getattr(hp, "segment_size", None)
-        
-        self.files = []
-        self.length_warned = False
-        with open(hp.filelists[mode], 'r') as filelist:
-            for file in filelist.readlines():
-                file = file.strip()
-                if file != "":
-                    self.files.append(file)
+        if mode == "train":
+            self.files = list(range(hp.train_idx.start, hp.train_idx.end + 1))
+        elif mode == "valid":
+            self.files = list(range(hp.valid_idx.start, hp.valid_idx.end + 1))
+        elif mode == "infer":
+            #self.files = list(hp.infer_idx)
+            self.files = list(range(hp.infer_idx.start, hp.infer_idx.end + 1))
+            self.segment_size = 160000
+            self.length_warned = True
+        self.files: List[int]
 
     def shuffle(self, seed: int):
         random.seed(seed)
@@ -390,27 +392,39 @@ class DNSDataset(torch.utils.data.Dataset):
         return len(self.files)
     
     def __getitem__(self, idx):
-        file = self.files[idx]
-        id = file.split("_")[-1]
-        clean, sr = librosa.core.load(os.path.join(self.clean_dir, f"clean_fileid_{id}"), sr=None)
-        assert sr == self.hp.sampling_rate
-        noisy, sr = librosa.core.load(os.path.join(self.noisy_dir, file), sr=None)
-        assert sr == self.hp.sampling_rate
+        _id = self.files[idx]
+        clean, sr = librosa.core.load(
+            os.path.join(self.clean_dir, f"original_signal_{_id}.wav"),
+            sr=None
+        )
+        assert sr == self.sampling_rate
+
+        noisy, sr = librosa.core.load(
+            os.path.join(self.far_dir, f"gain_controlled_{_id}.wav"),
+            sr=None
+        )
+        assert sr == self.sampling_rate
+
 
         if self.segment_size is not None:
             if clean.size >= self.segment_size:
-                start_idx = random.randint(0, clean.size - self.segment_size)  # 0 <= start_idx <= wav.size(-1) - segment_size
+                # 0 <= start_idx <= wav.size(-1) - segment_size
+                start_idx = random.randint(0, clean.size - self.segment_size)
                 clean = clean[start_idx:start_idx+self.segment_size]
                 noisy = noisy[start_idx:start_idx+self.segment_size]
             else:
                 if not self.length_warned:
-                    print(f"segment_size {self.segment_size} is longer than the data size {clean.size}")
+                    print(f"Warning - segment_size {self.segment_size} is longer than the"
+                          f" data size {clean.size}")
                     self.length_warned = True
                 padding = self.segment_size - clean.size
                 clean = np.pad(clean, (padding // 2, padding - padding // 2))
                 noisy = np.pad(noisy, (padding // 2, padding - padding // 2))
+               
+        res = {"clean": clean, "noisy": noisy}
+        
+        return res
 
-        return {"clean": clean, "noisy": noisy}
 
 
 class AECDataset(torch.utils.data.Dataset):
