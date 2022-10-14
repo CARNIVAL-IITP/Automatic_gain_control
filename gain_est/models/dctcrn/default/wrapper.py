@@ -18,33 +18,6 @@ from .losses import si_snr, abs_mse_loss
 import numpy as np
 from pypesq import pesq
 
-def vad(arr, threshold=1e-4):
-    start, stop = 0, 0
-    for i in range(arr.shape[-1]):
-        if arr[0][i] > threshold:
-            start = i
-            break
-    for i in reversed(range(arr.shape[-1])):
-        if arr[0][i] > threshold:
-            stop = i
-            break
-    
-    return start, stop
-
-
-def cal_ERLE(src_mix, src_est, start, stop):
-    pow_mix = np.sum(np.power(src_mix[:start], 2)) + np.sum(np.power(src_mix[stop:], 2))
-    pow_est = np.sum(np.power(src_est[:start], 2)) + np.sum(np.power(src_est[stop:], 2))
-
-    erle = 10 * math.log(pow_mix/pow_est)
-
-    return erle
-
-def cal_pesq_diff(near_ref, near_est, mix):
-    pesq_mix = pesq(near_ref, mix, 16000)
-    pesq_est = pesq(near_ref, near_est, 16000)
-
-    return pesq_est, pesq_mix
 
 class ModelWrapper(AudioModelWrapper):
     def __init__(self, hps, train=False, rank=0, device='cpu'):
@@ -83,9 +56,8 @@ class ModelWrapper(AudioModelWrapper):
         loss_sisnr_total, loss_aux_total = 0.0, 0.0
         for idx, batch in enumerate(dataloader, start=1):
             self.optim.zero_grad(set_to_none=True)
-            near = batch["near"].cuda(self.rank, non_blocking=True)
-            far = batch["far"].cuda(self.rank, non_blocking=True)
-            mix = batch["mix"].cuda(self.rank, non_blocking=True)
+            clean = batch["clean"].cuda(self.rank, non_blocking=True)
+            noisy = batch["noisy"].cuda(self.rank, non_blocking=True)
             
             with amp.autocast(enabled=self.fp16):
                 wav_hat, spec_hat = self.model(far, mix)

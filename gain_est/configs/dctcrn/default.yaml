@@ -15,25 +15,23 @@ model_kwargs:
 
 
 data:
-    near_dir: "/home/jhkim21/Data/AEC-Challenge/datasets/synthetic/nearend_speech"
-    far_dir: "/home/jhkim21/Data/AEC-Challenge/datasets/synthetic/farend_speech"
-    mix_dir: "/home/jhkim21/Data/AEC-Challenge/datasets/synthetic/nearend_mic_signal"
-    two_way : False
+    clean_dir: "/home/jhkim21/Data/processed/2022_AGC/clean"
+    noisy_dir: "/home/jhkim21/Data/processed/2022_AGC/noisy"
     train_idx:
-        start: 500
-        end: 9999
+        start: 0
+        end: 9499
     valid_idx:
-        start: 0
-        end: 499
+        start: 9500
+        end: 9999
     infer_idx: 
-        start: 0
-        end : 499     # 0은 잘되는편, 471은 안되는편
+        start: 9500
+        end : 9999     # 0은 잘되는편, 471은 안되는편
     segment_size: 64000
     sampling_rate: 16000
 train:
-    batch_size: 8
+    batch_size: 128
 
-    max_epochs: 300
+    max_epochs: 100
     fp16: True
     num_workers: 2
     persistent_workers: True
@@ -49,8 +47,8 @@ train:
 
     optimizer: "Adam"
     optimizer_kwargs:
-        lr: 0.001
+        lr: 5e-4
     scheduler: "CosineAnnealingLR"
     scheduler_kwargs:
-        T_max: 300
+        T_max: 100
         eta_min: 1.0e-7
