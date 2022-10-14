@@ -143,11 +143,13 @@ def run(rank, n_gpus, hps):
         
         # summarize & infer
         if rank == 0:
+            '''
             if epoch == 1 or epoch % hp.infer_interval == 0:
+                
                 summary_infer = wrapper.infer_epoch(infer_loader)
                 summarize(writer_valid, epoch, sampling_rate = hps.data.sampling_rate, **summary_infer)
             
-
+            '''
             if epoch % hp.save_interval == 0:
                 wrapper.save()
 
