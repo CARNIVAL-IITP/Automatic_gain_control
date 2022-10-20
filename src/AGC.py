@@ -49,8 +49,8 @@ class AGC():
         return 2 ** gain
 
 if __name__=='__main__':
-    res = np.zeros(SAMPLE_LENGTH * SAMPLE_RATE)
     sample, sr = sf.read('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/raw/nearend_speech_fileid_1.wav')
+    res = np.zeros(len(sample))
     vad = VAD.load_model('/home/jhkim21/IITP/2022/AGC/AGC_IITP/src/VAD/logs/ckpts/epoch20.pth.tar')
     agc = AGC(0.1,  neural_vad_model=vad)
     segment = SAMPLE_LENGTH * 1000 // FRAME_SIZE
