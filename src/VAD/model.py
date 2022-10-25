@@ -2,13 +2,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import librosa
-from utils import stft
+from .utils import stft
 
 import torch.nn as nn
 from torch.nn import Linear, RNN, LSTM, GRU
 import torch.nn.functional as F
 from torch.nn.functional import softmax, relu
 from torch.autograd import Variable
+
 
 class VAD(nn.Module):
     

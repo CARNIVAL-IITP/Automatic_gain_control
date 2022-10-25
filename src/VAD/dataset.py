@@ -21,11 +21,13 @@ class VADDataset(torch.utils.data.Dataset):
         self.frame_size = int(0.001 * frame_size * sample_rate)
         self.wavs = []
         self.labels = []
+        self.noise = True
         self.prepare_files()
         self.collect_frames()
         
     def get_track_count(self):
         return len(self.data)
+    
 
     def prepare_files(self, normalize=False):
         progress = 1
@@ -84,6 +86,11 @@ class VADDataset(torch.utils.data.Dataset):
                 continue
             
             # Get frames.
+        
+            if self.noise == True:
+                buffer = self.add_noise(buffer)
+    
+            
             frames = np.split(buffer, len(buffer) / self.frame_size)
             labels = np.round(np.mean(np.split(label_buffer, len(label_buffer) / self.frame_size), axis=1)).tolist()
             label_one += sum(labels)
@@ -102,7 +109,7 @@ class VADDataset(torch.utils.data.Dataset):
         print('\nlabel_zero : {}, label_one : {}'.format(label_zero, label_one))
 
         print('\nAugment {} zeros to dataset...'.format(int(label_one - label_zero)))
-        self.frames += [np.zeros(self.frame_size) for i in range(int(label_one - label_zero))]
+        self.frames += [np.zeros(self.frame_size) if not self.noise else np.random.normal(0, 0.01, self.frame_size) for i in range(int(label_one - label_zero))]
         self.frames_label += [np.zeros(1) for i in range(int(label_one - label_zero))]
 
         assert len(self.frames) == len(self.frames_label), 'Augmentation error!'
@@ -116,7 +123,16 @@ class VADDataset(torch.utils.data.Dataset):
         random.shuffle(temp)
         self.frames, self.frames_label = zip(*temp)
         self.frames, self.frames_label = list(self.frames), list(self.frames_label)
+    
+
+    def add_noise(self, buffer):
+        mu, sigma = 0, 0.01
+        noise = np.random.normal(mu, sigma, buffer.shape)
+        buffer += noise
         
+        return buffer 
+
+            
     def add_silence(self):
         idx = 0
         total_silence_length = 0
