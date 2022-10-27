@@ -61,15 +61,17 @@ if __name__=='__main__':
     sample = sample[:sample_size]
     res = np.zeros(sample_size)
     vad_plot = np.zeros(sample_size)
-
-    start = time.time()
+    avg_time = 0.0
     for i in range(segment):
+        start = time.time()
         in_buffer = sample[i*FRAME_LENGTH : (i+1) * FRAME_LENGTH]
         gain = agc.process(in_buffer)
         vad_plot[i*FRAME_LENGTH : (i+1) * FRAME_LENGTH] = int(agc.vad)
         res[i*FRAME_LENGTH : (i+1) * FRAME_LENGTH] = in_buffer * gain
+        avg_time += time.time() - start
     
-    print('processing time : {}'.format(time.time() - start))
+    print('test')
+    print('processing time : {}'.format(avg_time/segment))
     plt.plot(sample)
     plt.plot(vad_plot)
     plt.savefig(os.path.join('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/enhanced/', path.split('/')[-1].split('.')[0] + '.png'))
