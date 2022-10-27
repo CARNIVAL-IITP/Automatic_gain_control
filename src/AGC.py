@@ -70,7 +70,6 @@ if __name__=='__main__':
         res[i*FRAME_LENGTH : (i+1) * FRAME_LENGTH] = in_buffer * gain
         avg_time += time.time() - start
     
-    print('test')
     print('processing time : {}'.format(avg_time/segment))
     plt.plot(sample)
     plt.plot(vad_plot)
