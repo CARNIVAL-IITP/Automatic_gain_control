@@ -126,7 +126,7 @@ class VADDataset(torch.utils.data.Dataset):
     
 
     def add_noise(self, buffer):
-        mu, sigma = 0, 0.01
+        mu, sigma = 0, 0.00975
         noise = np.random.normal(mu, sigma, buffer.shape)
         buffer += noise
         

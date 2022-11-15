@@ -45,16 +45,16 @@ parser.add_argument('--model_path', default='final.pth.tar',
 
 def main(args):
     tr_dataset = VADDataset(json_path = args.json_path, mode='train', 
-                            sample_rate = args.sample_rate, frame_size=40)
+                            sample_rate = args.sample_rate, frame_size=25)
     tr_dataloader = DataLoader(tr_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
     cv_dataset = VADDataset(json_path = args.json_path, mode='test',  
-                            sample_rate = args.sample_rate, frame_size=40)
+                            sample_rate = args.sample_rate, frame_size=25)
     cv_dataloader = DataLoader(cv_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
 
     
     data = {'tr_loader': tr_dataloader, 'cv_loader': cv_dataloader}
 
-    model = VAD(640, 80, 640, 640)
+    model = VAD(512, 80, 400, 400)
     if args.use_cuda:
         model = torch.nn.DataParallel(model)
         model.cuda()

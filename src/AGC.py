@@ -6,7 +6,7 @@ import time
 import os
 import matplotlib.pyplot as plt
 
-FRAME_SIZE = 40
+FRAME_SIZE = 25
 SAMPLE_RATE = 16000
 SAMPLE_LENGTH = 10
 FRAME_LENGTH = FRAME_SIZE * SAMPLE_RATE // 1000
@@ -51,11 +51,12 @@ class AGC():
         return 2 ** gain
 
 if __name__=='__main__':
-    path = '/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/raw/female.wav'
+    path = '/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/raw/male.wav'
     sample, sr = sf.read(path)
+
     vad = VAD.load_model('/home/jhkim21/IITP/2022/AGC/AGC_IITP/src/VAD/logs/ckpts/epoch20.pth.tar')
     vad.eval()
-    agc = AGC(0.2,  neural_vad_model=vad)
+    agc = AGC(0.1,  neural_vad_model=vad)
     sample_size = len(sample) // FRAME_LENGTH * FRAME_LENGTH
     segment = sample_size // FRAME_LENGTH 
     sample = sample[:sample_size]
@@ -73,5 +74,5 @@ if __name__=='__main__':
     print('processing time : {}'.format(avg_time/segment))
     plt.plot(sample)
     plt.plot(vad_plot)
-    plt.savefig(os.path.join('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/enhanced/', path.split('/')[-1].split('.')[0] + '.png'))
+    plt.savefig(os.path.join('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/enhanced/', path.split('/')[-1].split('.')[0] + '_enh.png'))
     sf.write(os.path.join('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/enhanced/', path.split('/')[-1]), res, 16000)
