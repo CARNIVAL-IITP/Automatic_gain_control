@@ -5,9 +5,8 @@ import librosa
 from .utils import stft
 
 import torch.nn as nn
-from torch.nn import Linear, RNN, LSTM, GRU
+from torch.nn import GRU
 import torch.nn.functional as F
-from torch.nn.functional import softmax, relu
 from torch.autograd import Variable
 
 
