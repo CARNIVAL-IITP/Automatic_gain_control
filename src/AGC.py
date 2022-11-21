@@ -73,5 +73,5 @@ if __name__=='__main__':
         avg_time += time.time() - start
 
     print('processing time : {}'.format(avg_time/segment))
-    plt.plot(vad_plot)
+    #plt.plot(vad_plot)
     sf.write(os.path.join('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/enhanced/', path.split('/')[-1]), res, 16000)
