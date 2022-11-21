@@ -4,8 +4,6 @@ from .utils import stft
 
 import torch.nn as nn
 from torch.nn import GRU
-import torch.nn.functional as F
-from torch.autograd import Variable
 
 
 class VAD(nn.Module):
