@@ -53,9 +53,12 @@ class AGC():
 if __name__=='__main__':
     path = '/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/raw/female.wav'
     sample, sr = sf.read(path)
-    plt.plot(sample)
-    plt.savefig(os.path.join('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/enhanced/', path.split('/')[-1].split('.')[0] + '_raw.png'))
-
+    '''
+    plt.ylim(-1.0, 1.0)
+    plt.plot(sample, color='C0')
+    plt.rcParams['figure.figsize'] = (200, 10)
+    plt.savefig(os.path.join('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/enhanced/', path.split('/')[-1].split('.')[0] + '_raw.png'), dpi=200)
+    '''
     vad = VAD.load_model('/home/jhkim21/IITP/2022/AGC/AGC_IITP/src/VAD/logs/ckpts/epoch20.pth.tar')
     vad.eval()
     agc = AGC(0.1,  neural_vad_model=vad)
@@ -65,16 +68,20 @@ if __name__=='__main__':
     res = np.zeros(sample_size)
     vad_plot = np.zeros(sample_size)
     avg_time = 0.0
+    gain_list = np.zeros(sample_size)
     for i in range(segment):
         start = time.time()
         in_buffer = sample[i*FRAME_LENGTH : (i+1) * FRAME_LENGTH]
         gain = agc.process(in_buffer)
         vad_plot[i*FRAME_LENGTH : (i+1) * FRAME_LENGTH] = int(agc.vad)
         res[i*FRAME_LENGTH : (i+1) * FRAME_LENGTH] = in_buffer * gain
+        gain_list[i*FRAME_LENGTH : (i+1) * FRAME_LENGTH] = gain
         avg_time += time.time() - start
     
     print('processing time : {}'.format(avg_time/segment))
-    plt.plot(sample)
+    #plt.ylim(-1.0, 1.0)
+    plt.plot(gain_list, color='C0')
+    plt.rcParams['figure.figsize'] = (200, 10)
     #plt.plot(vad_plot)
-    plt.savefig(os.path.join('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/enhanced/', path.split('/')[-1].split('.')[0] + '_enh.png'))
+    plt.savefig(os.path.join('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/enhanced/', path.split('/')[-1].split('.')[0] + '_gain.png'), dpi=200)
     #sf.write(os.path.join('/home/jhkim21/IITP/2022/AGC/AGC_IITP/sample/enhanced/', path.split('/')[-1]), res, 16000)
