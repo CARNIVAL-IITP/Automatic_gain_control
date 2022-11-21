@@ -50,16 +50,19 @@ class VAD(nn.Module):
         return model
 
     @staticmethod
-    def serialize(model, optimizer, epoch, tr_loss = None, cv_loss = None):
-        package = {'n_fft' : model.n_fft, 'hidden_size' : model.hidden_size, 'win_len' : model.win_len, 'hop_len' : model.hop_len, \
-            'state_dict' : model.state_dict(),
-            'optim_dict' : optimizer.state_dict(),
-            'epoch' : epoch}
+    def serialize(model, epoch, tr_loss = None, cv_loss = None):
+        package = {'n_fft' : model.n_fft,
+                'hidden_size' : model.hidden_size, 
+                'win_len' : model.win_len, 
+                'hop_len' : model.hop_len, 
+                'state_dict' : model.state_dict(),
+                'epoch' : epoch}
         if tr_loss is not None:
             package['tr_loss'] = tr_loss
             package['cv_loss'] = cv_loss
 
         return package
+
 
 
 if __name__=='__main__':
