@@ -13,7 +13,7 @@ from torch.autograd import Variable
 
 class VAD(nn.Module):
     
-    def __init__(self, n_fft, hidden_size, win_len, hop_len, num_classes=2):
+    def __init__(self, n_fft, hidden_size, win_len, hop_len):
         super(VAD, self).__init__()
         self.n_fft = n_fft
         input_size = self.n_fft // 2 + 1
