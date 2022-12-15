@@ -4,7 +4,6 @@ from solver import Solver
 from model import VAD
 import torch
 from torch.utils.data import DataLoader
-from torch.utils.data.distributed import DistributedSampler
 
 parser = argparse.ArgumentParser("Neural voice activity detection for automatic gain control")
 
