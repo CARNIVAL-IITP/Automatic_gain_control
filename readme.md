@@ -17,10 +17,10 @@ numpy==1.21.6
 
 Process
 -------------
-If you want to run version 2.1.1: Run AGC_endtoend/eval.ipynb
+If you want to run version 2.1.1: Run AGC_endtoend/eval.ipynb   
 If you want to run version 2.1.2: Run AGC_endtoend_r1/eval.ipynb
 
 Training
 -------------
-Version 2.1.1: Run AGC_endtoend/train.py
+Version 2.1.1: Run AGC_endtoend/train.py    
 Version 2.1.2: Run AGC_endtoend_r1/train.py
