@@ -6,8 +6,7 @@ Carnival system을 구성하는 Automatic Gain Control 모델입니다.<br>
 
 2차년도 AGC 모델: Neural VAD와 prescripted gain map을 이용하여 균일하지 못한 음성 신호의 gain을 조절하는 알고리즘
 
-
-
+3차년도 AGC 모델: STFT - GRU - MLP 의 경량화된 구조를 이용해 end-to-end로 음성 신호의 gain을 조절하는 알고리즘
 
 Requirements
 -------------
@@ -18,8 +17,8 @@ numpy==1.21.6
 
 Process
 -------------
-Run AGC.py
+If you want to run version 2.1: Run AGC_endtoend/eval.ipynb
 
-Training VAD
+Training
 -------------
-if you want to train Neural VAD module, check src/VAD.
+Version 2.1: Run AGC_endtoend/train.py
