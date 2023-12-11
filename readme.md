@@ -17,10 +17,16 @@ numpy==1.21.6
 
 Process
 -------------
-If you want to run version 2.1.1: Run AGC_endtoend/eval.ipynb   
-If you want to run version 2.1.2: Run AGC_endtoend_r1/eval.ipynb
+If you want to run version 2.1.1: Run models/AGC_endtoend/eval.ipynb   
+If you want to run version 2.1.2: Run models/AGC_endtoend_r1/eval.ipynb
 
 Training
 -------------
-Version 2.1.1: Run AGC_endtoend/train.py    
-Version 2.1.2: Run AGC_endtoend_r1/train.py
+Version 2.1.1: Run models/AGC_endtoend/train.py    
+Version 2.1.2: Run models/AGC_endtoend_r1/train.py
+
+How to run latest version (v2.1.2)
+-------------
+1. Open models/AGC_endtoend_r1_eval.ipynb on Vs code    
+2. Set kernel to python 3.7.16 and pip install requirements 
+3. Push "Run All"   
