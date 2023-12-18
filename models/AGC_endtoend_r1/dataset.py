@@ -18,8 +18,6 @@ class AGCDataset(torch.utils.data.Dataset):
         # frame_size: ms
         super(AGCDataset, self).__init__()
 
-        assert win_len % hop_len == 0, 'win_len should be integer multiple of hop_len'
-
         self.json_path = json_path
         with open(self.json_path, 'r') as f:
             self.data = json.load(f)
@@ -38,8 +36,6 @@ class AGCDataset(torch.utils.data.Dataset):
     def prepare_files(self, normalize=False):
         # Convert files to desired format and save raw content.
         for i, file in enumerate(self.data):
-            if i % 100 == 0:
-                print('Processing {0} of {1}'.format(i + 1, self.get_track_count()), end='\r', flush=True)
 
             wav_d, _ = sf.read(file['path'])
             wav_o, _ = sf.read(file['label'])
