@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 import config
 import os
 
-# os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,mo"
+# os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 
 parser = config.parser
 
@@ -19,7 +19,7 @@ def main(args):
 
     data = {'tr_loader': tr_dataloader, 'cv_loader': cv_dataloader}
 
-    model = AGC_STFT_GRU(160, 10, 160, 80)
+    model = AGC_STFT_GRU(160, 40, 160, 80)
     if args.use_cuda:
         model = torch.nn.DataParallel(model)
         model.cuda()
