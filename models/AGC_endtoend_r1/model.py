@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import os
+import math
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 
@@ -30,7 +31,17 @@ class AGC_STFT_GRU(nn.Module):
             distorted = x[..., -self.hop_len:]
         if h_0 == None:
             x = F.pad(x, (self.win_len - 1 - ((x.shape[1] - 1) % self.hop_len) , 0, 0, 0))
-        x = torch.stft(x, n_fft=self.n_fft, hop_length=self.hop_len, win_length=self.win_len, center=False, window=self.window.to(x.device))
+        # x = torch.stft(x, n_fft=self.n_fft, hop_length=self.hop_len, win_length=self.win_len, center=False, window=self.window.to(x.device), return_complex=True)
+        x = torch.stft(x, n_fft=self.n_fft, hop_length=self.hop_len, win_length=self.win_len, center=False, window=self.window.to(x.device), return_complex=False)
+        
+        # print(x[:, :, -1, :])
+
+        if h_0 != None:
+            x = x[:, :, -1, :]
+            x = x.unsqueeze(2)
+        
+        
+        # x = torch.view_as_real(x)
         x_real, x_imag = x[:, :, :, 0], x[:, :, :, 1]
         x = torch.sqrt(torch.square(x_real) + torch.square(x_imag))
         x = x.permute(0, 2, 1)
@@ -46,7 +57,8 @@ class AGC_STFT_GRU(nn.Module):
         x = self.upsample(x)
         gain = x.squeeze(1)
         gain = gain[:, :distorted.shape[1]]
-        gain = torch.exp2(gain)
+        # gain = torch.exp2(gain)
+        gain = torch.exp(gain * math.log(2.))
         
         estimate = distorted * gain
         return estimate, hidden
@@ -77,7 +89,7 @@ class AGC_STFT_GRU(nn.Module):
 
         return package
     
-class AGC_STFT_GRU_smooth(nn.Module):
+class AGC_STFT_GRU_smooth(nn.Module): ## 개발중인 모델 완성x
     
     def __init__(self, n_fft, hidden_size, win_len, hop_len):
         super(AGC_STFT_GRU, self).__init__()
