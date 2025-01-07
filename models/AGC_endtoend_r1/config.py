@@ -32,13 +32,13 @@ parser.add_argument('--lr', default=1e-2, type=float,
                     help='Initial learning rate')
 parser.add_argument('--max_norm', default=5, type=float,
                     help='Gradient norm threshold to clip')
-parser.add_argument('--save_folder', default='/home/yhjeon/projects/IITP_SE/NS_AGC/models/AGC_endtoend_r1/ckpts',
+parser.add_argument('--save_folder', default='/home/yhjeon/projects/IITP_SE/NS_AGC/models/AGC_endtoend_r1/ckpts/h40',
                     help='Location to save epoch models')
 parser.add_argument('--checkpoint', dest='checkpoint', default=1, type=int,
                     help='Enables checkpoint saving of model')
-parser.add_argument('--continue_model', default='/home/yhjeon/projects/IITP_SE/NS_AGC/models/AGC_endtoend_r1/ckpts/best.pth.tar',
+parser.add_argument('--continue_model', default='/home/yhjeon/projects/IITP_SE/NS_AGC/models/AGC_endtoend_r1/ckpts/h40/best.pth.tar',
                     help='Continue from checkpoint model')
 parser.add_argument('--continue_from', default=False,
                     help='Continue from checkpoint model')
-parser.add_argument('--model_path', default='/home/yhjeon/projects/IITP_SE/NS_AGC/models/AGC_endtoend_r1/ckpts/best.pth.tar',
+parser.add_argument('--model_path', default='/home/yhjeon/projects/IITP_SE/NS_AGC/models/AGC_endtoend_r1/ckpts/h40/best.pth.tar',
                     help='Location to save best validation model')
