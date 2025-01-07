@@ -19,11 +19,16 @@ Process
 -------------
 If you want to run version 2.1.1: Run models/AGC_endtoend/eval.ipynb   
 If you want to run version 2.1.2: Run models/AGC_endtoend_r1/eval.ipynb
+If you want to run final onnx file: Run models/AGC_endtoend_r1/eval_onnx.ipynb
 
 Training
 -------------
 Version 2.1.1: Run models/AGC_endtoend/train.py    
 Version 2.1.2: Run models/AGC_endtoend_r1/train.py
+
+Onnx extraction
+-------------
+Final version: ./onnx.ipynb
 
 How to run latest version (v2.1.2)
 -------------
